@@ -16,6 +16,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 MATCH_DURATION = 120
 PREDICTION_WINDOW = 3
+POST_MATCH_RESET_DELAY = 5
 
 state = {
     "match_started": False,
@@ -34,10 +35,11 @@ state = {
     "scores": {},
     "predictions": {},
     "online_users": [],
+    "match_finished_at": None,
 }
 
 
-def reset_match():
+def full_reset():
     state["match_started"] = False
     state["match_start_time"] = None
     state["processed_event_ids"] = []
@@ -45,6 +47,18 @@ def reset_match():
     state["scores"] = {}
     state["predictions"] = {}
     state["online_users"] = []
+    state["match_finished_at"] = None
+
+
+def reset_for_new_match():
+    state["match_started"] = False
+    state["match_start_time"] = None
+    state["processed_event_ids"] = []
+    state["feed"] = []
+    state["scores"] = {}
+    state["predictions"] = {}
+    state["online_users"] = []
+    state["match_finished_at"] = None
 
 
 def get_match_time() -> int:
@@ -62,7 +76,17 @@ def add_feed_message(message: str):
     state["feed"] = state["feed"][:30]
 
 
+def maybe_reset_finished_match():
+    if state["match_finished_at"] is None:
+        return
+
+    if time.time() - state["match_finished_at"] >= POST_MATCH_RESET_DELAY:
+        full_reset()
+
+
 def process_events():
+    maybe_reset_finished_match()
+
     if not state["match_started"]:
         return
 
@@ -75,9 +99,7 @@ def process_events():
         if now_time >= event["time"]:
             state["processed_event_ids"].append(event["id"])
 
-            add_feed_message(
-                f"📡 Событие: {event['type']} ({event['time']} сек)"
-            )
+            add_feed_message(f"📡 Событие: {event['type']} ({event['time']} сек)")
 
             for username, prediction_time in list(state["predictions"].items()):
                 delta = event["time"] - prediction_time
@@ -89,15 +111,15 @@ def process_events():
                         f"✅ {username} точно предсказал событие и получил {points} очков"
                     )
                 else:
-                    add_feed_message(
-                        f"❌ {username} не попал по времени"
-                    )
+                    add_feed_message(f"❌ {username} не попал по времени")
 
             state["predictions"] = {}
 
     if now_time >= state["match_duration"] and state["match_started"]:
         state["match_started"] = False
+        state["match_finished_at"] = time.time()
         add_feed_message("🏁 Матч завершён")
+        add_feed_message("♻️ Данные будут очищены через 5 секунд")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -111,7 +133,7 @@ async def home(request: Request):
 
 @app.post("/api/start")
 async def start_match():
-    reset_match()
+    reset_for_new_match()
     state["match_started"] = True
     state["match_start_time"] = time.time()
     add_feed_message("▶️ Матч начался")
@@ -120,6 +142,8 @@ async def start_match():
 
 @app.post("/api/join")
 async def join(payload: Dict):
+    maybe_reset_finished_match()
+
     username = str(payload.get("username", "")).strip()
 
     if not username:
@@ -141,6 +165,8 @@ async def join(payload: Dict):
 
 @app.post("/api/predict")
 async def predict(payload: Dict):
+    maybe_reset_finished_match()
+
     username = str(payload.get("username", "")).strip()
 
     if not username:
@@ -170,9 +196,7 @@ async def predict(payload: Dict):
         state["online_users"].append(username)
 
     state["predictions"][username] = current_time
-    add_feed_message(
-        f"⏳ {username} сделал прогноз на {current_time} сек"
-    )
+    add_feed_message(f"⏳ {username} сделал прогноз на {current_time} сек")
 
     return {"status": "ok"}
 
