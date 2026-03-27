@@ -1,0 +1,100 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b0f19;
+    color: #ffffff;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+h1 {
+    margin-bottom: 8px;
+    font-size: 42px;
+}
+
+.subtitle {
+    color: #b8c1d1;
+    margin-bottom: 24px;
+}
+
+.card {
+    background: #151c2c;
+    border: 1px solid #2a3550;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+input {
+    min-width: 240px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #3a4767;
+    background: #0f1524;
+    color: white;
+}
+
+button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #4f7cff;
+    color: white;
+    font-weight: 600;
+}
+
+button:hover {
+    opacity: 0.92;
+}
+
+.status {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.feed,
+.leaderboard {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.feed li,
+.leaderboard li {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+@media (max-width: 800px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    h1 {
+        font-size: 32px;
+    }
+}

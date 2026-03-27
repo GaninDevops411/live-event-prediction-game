@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Stream Game</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="container">
+    <h1>🎮 Prediction Stream Game</h1>
+    <p class="subtitle">
+        Игрок должен как можно точнее угадать момент события во время трансляции.
+    </p>
+
+    <div class="card">
+        <div class="row">
+            <input id="username" type="text" placeholder="Введите ник">
+            <button id="joinBtn">Войти</button>
+            <button id="startBtn">Начать демо-матч</button>
+        </div>
+
+        <div class="status">
+            <div><strong>Игрок:</strong> <span id="currentUser">—</span></div>
+            <div><strong>Статус матча:</strong> <span id="matchStatus">не начался</span></div>
+            <div><strong>Таймер трансляции:</strong> <span id="timer">0 / 60 сек</span></div>
+            <div><strong>Окно прогноза:</strong> <span id="windowInfo">3 сек</span></div>
+        </div>
+
+        <div class="actions">
+            <button id="predictBtn">Предсказать событие в ближайшие 3 сек</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>📡 Лента трансляции</h2>
+            <ul id="feed" class="feed"></ul>
+        </div>
+
+        <div class="card">
+            <h2>🏆 Турнирная таблица</h2>
+            <ul id="leaderboard" class="leaderboard"></ul>
+        </div>
+    </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
