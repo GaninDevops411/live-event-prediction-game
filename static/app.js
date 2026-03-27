@@ -27,10 +27,16 @@ function renderState(data) {
     const feed = document.getElementById("feed");
     feed.innerHTML = "";
 
-    for (const item of data.feed) {
+    if (data.feed.length === 0) {
         const li = document.createElement("li");
-        li.innerText = item;
+        li.innerText = "Пока событий нет";
         feed.appendChild(li);
+    } else {
+        for (const item of data.feed) {
+            const li = document.createElement("li");
+            li.innerText = item;
+            feed.appendChild(li);
+        }
     }
 
     const leaderboard = document.getElementById("leaderboard");
@@ -38,14 +44,44 @@ function renderState(data) {
 
     if (data.leaderboard.length === 0) {
         const li = document.createElement("li");
-        li.innerText = "Пока нет очков";
+        li.innerText = "Очков пока нет";
         leaderboard.appendChild(li);
     } else {
-        for (const player of data.leaderboard) {
+        data.leaderboard.forEach((player, index) => {
             const li = document.createElement("li");
-            li.innerText = `${player.username}: ${player.score}`;
+            li.innerHTML = `<span>#${index + 1} ${player.username}</span><strong>${player.score}</strong>`;
             leaderboard.appendChild(li);
-        }
+        });
+    }
+
+    const usersList = document.getElementById("onlineUsers");
+    usersList.innerHTML = "";
+
+    if (data.online_users.length === 0) {
+        const li = document.createElement("li");
+        li.innerText = "Никто не подключен";
+        usersList.appendChild(li);
+    } else {
+        data.online_users.forEach(user => {
+            const li = document.createElement("li");
+            li.innerText = `🟢 ${user}`;
+            usersList.appendChild(li);
+        });
+    }
+
+    const nextEventCard = document.getElementById("nextEventCard");
+    if (data.next_event_hint) {
+        const secondsLeft = Math.max(0, data.next_event_hint.time - data.current_time);
+        nextEventCard.innerHTML = `
+            <div class="next-event-type">${data.next_event_hint.type}</div>
+            <div class="next-event-time">Ожидается примерно через ${secondsLeft} сек</div>
+            <div class="next-event-sub">Пытайся нажать кнопку прогноза заранее</div>
+        `;
+    } else {
+        nextEventCard.innerHTML = `
+            <div class="next-event-type">Все события завершены</div>
+            <div class="next-event-time">Дождись нового матча</div>
+        `;
     }
 }
 

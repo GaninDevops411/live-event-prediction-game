@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -14,7 +14,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-MATCH_DURATION = 60
+MATCH_DURATION = 120
 PREDICTION_WINDOW = 3
 
 state = {
@@ -22,14 +22,18 @@ state = {
     "match_start_time": None,
     "match_duration": MATCH_DURATION,
     "events": [
-        {"id": 1, "time": 12, "type": "Гол"},
-        {"id": 2, "time": 27, "type": "Опасный удар"},
-        {"id": 3, "time": 44, "type": "Киберспорт: ключевой фраг"},
+        {"id": 1, "time": 10, "type": "Гол"},
+        {"id": 2, "time": 25, "type": "Опасный удар"},
+        {"id": 3, "time": 40, "type": "Фол"},
+        {"id": 4, "time": 60, "type": "Контратака"},
+        {"id": 5, "time": 80, "type": "Киберспорт: ключевой фраг"},
+        {"id": 6, "time": 100, "type": "Решающий момент"},
     ],
     "processed_event_ids": [],
     "feed": [],
     "scores": {},
     "predictions": {},
+    "online_users": [],
 }
 
 
@@ -40,6 +44,7 @@ def reset_match():
     state["feed"] = []
     state["scores"] = {}
     state["predictions"] = {}
+    state["online_users"] = []
 
 
 def get_match_time() -> int:
@@ -54,7 +59,7 @@ def get_match_time() -> int:
 
 def add_feed_message(message: str):
     state["feed"].insert(0, message)
-    state["feed"] = state["feed"][:20]
+    state["feed"] = state["feed"][:30]
 
 
 def process_events():
@@ -71,7 +76,7 @@ def process_events():
             state["processed_event_ids"].append(event["id"])
 
             add_feed_message(
-                f"⚽ Событие произошло: {event['type']} ({event['time']} сек)"
+                f"📡 Событие: {event['type']} ({event['time']} сек)"
             )
 
             for username, prediction_time in list(state["predictions"].items()):
@@ -81,18 +86,18 @@ def process_events():
                     points = 10 + (PREDICTION_WINDOW - delta)
                     state["scores"][username] = state["scores"].get(username, 0) + points
                     add_feed_message(
-                        f"✅ {username} угадал момент события и получил {points} очков"
+                        f"✅ {username} точно предсказал событие и получил {points} очков"
                     )
                 else:
                     add_feed_message(
-                        f"❌ {username} не угадал момент события"
+                        f"❌ {username} не попал по времени"
                     )
 
             state["predictions"] = {}
 
     if now_time >= state["match_duration"] and state["match_started"]:
         state["match_started"] = False
-        add_feed_message("🏁 Демо-матч завершен")
+        add_feed_message("🏁 Матч завершён")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -109,7 +114,7 @@ async def start_match():
     reset_match()
     state["match_started"] = True
     state["match_start_time"] = time.time()
-    add_feed_message("▶️ Демо-матч начался")
+    add_feed_message("▶️ Матч начался")
     return {"status": "ok"}
 
 
@@ -126,7 +131,11 @@ async def join(payload: Dict):
     if username not in state["scores"]:
         state["scores"][username] = 0
 
-    add_feed_message(f"👤 Игрок {username} присоединился")
+    if username not in state["online_users"]:
+        state["online_users"].append(username)
+
+    add_feed_message(f"👤 {username} подключился к матчу")
+
     return {"status": "ok", "username": username}
 
 
@@ -143,7 +152,7 @@ async def predict(payload: Dict):
     if not state["match_started"]:
         return JSONResponse(
             status_code=400,
-            content={"status": "error", "message": "Матч еще не начался"},
+            content={"status": "error", "message": "Матч ещё не начался"},
         )
 
     current_time = get_match_time()
@@ -151,15 +160,18 @@ async def predict(payload: Dict):
     if current_time >= state["match_duration"]:
         return JSONResponse(
             status_code=400,
-            content={"status": "error", "message": "Матч уже завершен"},
+            content={"status": "error", "message": "Матч уже завершён"},
         )
 
     if username not in state["scores"]:
         state["scores"][username] = 0
 
+    if username not in state["online_users"]:
+        state["online_users"].append(username)
+
     state["predictions"][username] = current_time
     add_feed_message(
-        f"⏳ {username} сделал прогноз на {current_time} сек: событие произойдет в ближайшие {PREDICTION_WINDOW} сек"
+        f"⏳ {username} сделал прогноз на {current_time} сек"
     )
 
     return {"status": "ok"}
@@ -183,7 +195,7 @@ async def get_state():
     next_event: Optional[Dict] = None
     for event in state["events"]:
         if event["id"] not in state["processed_event_ids"]:
-            next_event = {"time": event["time"]}
+            next_event = {"time": event["time"], "type": event["type"]}
             break
 
     return {
@@ -194,4 +206,5 @@ async def get_state():
         "leaderboard": leaderboard,
         "next_event_hint": next_event,
         "prediction_window": PREDICTION_WINDOW,
+        "online_users": state["online_users"],
     }

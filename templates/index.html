@@ -2,46 +2,79 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Prediction Stream Game</title>
+    <title>Live Event Prediction Game</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-<div class="container">
-    <h1>🎮 Prediction Stream Game</h1>
-    <p class="subtitle">
-        Игрок должен как можно точнее угадать момент события во время трансляции.
-    </p>
+<div class="page">
+    <div class="hero">
+        <div class="hero-badge">LIVE MVP</div>
+        <h1>🎮 Live Event Prediction Game</h1>
+        <p class="subtitle">
+            Пользователи следят за трансляцией, пытаются максимально точно предсказать момент события
+            и набирают очки, продвигаясь в турнирной таблице.
+        </p>
+    </div>
 
-    <div class="card">
-        <div class="row">
+    <div class="top-panel card">
+        <div class="join-row">
             <input id="username" type="text" placeholder="Введите ник">
             <button id="joinBtn">Войти</button>
-            <button id="startBtn">Начать демо-матч</button>
+            <button id="startBtn">Начать матч</button>
+            <button id="predictBtn" class="accent-btn">Предсказать событие</button>
         </div>
 
-        <div class="status">
-            <div><strong>Игрок:</strong> <span id="currentUser">—</span></div>
-            <div><strong>Статус матча:</strong> <span id="matchStatus">не начался</span></div>
-            <div><strong>Таймер трансляции:</strong> <span id="timer">0 / 60 сек</span></div>
-            <div><strong>Окно прогноза:</strong> <span id="windowInfo">3 сек</span></div>
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">Игрок</span>
+                <span class="status-value" id="currentUser">—</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Статус матча</span>
+                <span class="status-value" id="matchStatus">не идет</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Таймер трансляции</span>
+                <span class="status-value" id="timer">0 / 120 сек</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Окно прогноза</span>
+                <span class="status-value" id="windowInfo">3 сек</span>
+            </div>
         </div>
 
-        <div class="actions">
-            <button id="predictBtn">Предсказать событие в ближайшие 3 сек</button>
+        <div class="hint-box">
+            <div class="hint-title">💡 Как играть</div>
+            <div class="hint-text">
+                Нажми «Предсказать событие» за 1–3 секунды до предполагаемого момента события.
+                Чем точнее попадание, тем больше очков.
+            </div>
         </div>
     </div>
 
-    <div class="grid">
+    <div class="dashboard-grid">
         <div class="card">
             <h2>📡 Лента трансляции</h2>
-            <ul id="feed" class="feed"></ul>
+            <ul id="feed" class="feed-list"></ul>
         </div>
 
         <div class="card">
             <h2>🏆 Турнирная таблица</h2>
-            <ul id="leaderboard" class="leaderboard"></ul>
+            <ul id="leaderboard" class="leaderboard-list"></ul>
+        </div>
+
+        <div class="card">
+            <h2>👥 Игроки онлайн</h2>
+            <ul id="onlineUsers" class="online-users-list"></ul>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Следующее событие</h2>
+            <div id="nextEventCard" class="next-event-card">
+                Ожидание данных...
+            </div>
         </div>
     </div>
 </div>
